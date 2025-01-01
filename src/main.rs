@@ -1,11 +1,10 @@
-use std::env;
-use std::process::Output;
 use serenity::{
     async_trait,
     client::Client,
     model::{channel::Message, gateway::Ready},
     prelude::*,
 };
+use std::env;
 
 enum Map {
     Island,
@@ -23,27 +22,42 @@ enum Map {
 
 struct Server {
     map_name: Map,
-    is_running: bool,
 }
 impl Server {
     fn from(map_name: Map) -> Server {
+        Server { map_name }
+    }
+    fn is_active(&self) -> bool {
         let command = std::process::Command::new("systemctl")
             .arg("--user")
             .arg("is-active")
-            .arg(format!("ark{}", map_name.borrow().into()))
+            .arg(format!("ark{}", self.map_name.borrow().into()))
             .output()
-            .unwrap().stdout;
+            .unwrap()
+            .stdout;
         let output = String::from_utf8_lossy(&command).to_string();
-        let mut is_running = false;
 
         if output.contains("active") {
-            is_running = true;
+            true
         } else {
-            is_running = false;
+            false
         }
-        Server {
-            map_name,
-            is_running,
+    }
+    fn stop(&self) -> Result<(), String> {
+        if !self.is_active() {
+            return Err("Der Server läuft nicht!".to_string());
+        }
+        match std::process::Command::new("systemctl")
+            .arg("--user")
+            .arg("stop")
+            .arg(format!("ark{}", self.map_name.borrow().into()))
+            .output()
+        {
+            Ok(_) => Ok(()),
+            Err(err) => Err(format!(
+                "Der Server konnte nicht gestoppt werden: {}",
+                err.into()
+            )),
         }
     }
 }
