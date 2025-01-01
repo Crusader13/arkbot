@@ -5,6 +5,7 @@ use serenity::{
     prelude::*,
 };
 use std::env;
+use std::fmt::{Display, Formatter};
 
 enum Map {
     Island,
@@ -19,19 +20,48 @@ enum Map {
     Gen2,
     LostIsland,
 }
-
+impl Display for Map {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Map::Island => write!(f, "Island"),
+            Map::Center => write!(f, "Center"),
+            Map::Ragnarok => write!(f, "Ragnarok"),
+            Map::CrystalIsles => write!(f, "CrystalIsles"),
+            Map::Valguero => write!(f, "Valguero"),
+            Map::Aberration => write!(f, "Aberration"),
+            Map::Extinction => write!(f, "Extinction"),
+            Map::SE => write!(f, "SE"),
+            Map::Gen1 => write!(f, "Gen1"),
+            Map::Gen2 => write!(f, "Gen2"),
+            Map::LostIsland => write!(f, "LostIsland"),
+        }
+    }
+}
 struct Server {
     map_name: Map,
 }
 impl Server {
-    fn from(map_name: Map) -> Server {
-        Server { map_name }
+    fn from(map_name: Map) -> Option<Server> {
+        let services = std::process::Command::new("systemctl")
+            .arg("--user")
+            .arg("list-unit-files")
+            .arg("--type=service")
+            .output()
+            .unwrap()
+            .stdout;
+        let services = String::from_utf8_lossy(&services);
+
+        if services.contains(&map_name.to_string()) {
+            Some(Server { map_name })
+        } else {
+            None
+        }
     }
     fn is_active(&self) -> bool {
         let command = std::process::Command::new("systemctl")
             .arg("--user")
             .arg("is-active")
-            .arg(format!("ark{}", self.map_name.borrow().into()))
+            .arg(format!("ark{}", &self.map_name))
             .output()
             .unwrap()
             .stdout;
@@ -50,13 +80,13 @@ impl Server {
         match std::process::Command::new("systemctl")
             .arg("--user")
             .arg("stop")
-            .arg(format!("ark{}", self.map_name.borrow().into()))
+            .arg(format!("ark{}", &self.map_name))
             .output()
         {
             Ok(_) => Ok(()),
             Err(err) => Err(format!(
                 "Der Server konnte nicht gestoppt werden: {}",
-                err.into()
+                err.to_string()
             )),
         }
     }
