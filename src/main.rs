@@ -1,5 +1,5 @@
 use std::env;
-
+use std::process::Output;
 use serenity::{
     async_trait,
     client::Client,
@@ -7,9 +7,46 @@ use serenity::{
     prelude::*,
 };
 
-const HELP_MESSAGE: &str = "Hallo Hilfe! Hau rein <#1323720623243001906> channel.";
+enum Map {
+    Island,
+    Center,
+    Ragnarok,
+    CrystalIsles,
+    Valguero,
+    Aberration,
+    Extinction,
+    SE,
+    Gen1,
+    Gen2,
+    LostIsland,
+}
 
-const HELP_COMMAND: &str = "!help";
+struct Server {
+    map_name: Map,
+    is_running: bool,
+}
+impl Server {
+    fn from(map_name: Map) -> Server {
+        let command = std::process::Command::new("systemctl")
+            .arg("--user")
+            .arg("is-active")
+            .arg(format!("ark{}", map_name.borrow().into()))
+            .output()
+            .unwrap().stdout;
+        let output = String::from_utf8_lossy(&command).to_string();
+        let mut is_running = false;
+
+        if output.contains("active") {
+            is_running = true;
+        } else {
+            is_running = false;
+        }
+        Server {
+            map_name,
+            is_running,
+        }
+    }
+}
 
 struct Handler;
 
