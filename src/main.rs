@@ -114,7 +114,7 @@ async fn main() {
         env::var("DISCORD_TOKEN").expect("Die DISCORD_TOKEN Umgebungsvariable gibt es nicht");
 
     let intents = GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::DIRECT_MESSAGES
+        | GatewayIntents::GUILDS
         | GatewayIntents::MESSAGE_CONTENT;
 
     let mut client = Client::builder(&token, intents)
