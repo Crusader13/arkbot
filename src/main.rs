@@ -4,9 +4,9 @@ use serenity::{
     model::{channel::Message, gateway::Ready},
     prelude::*,
 };
-use std::{env, io};
 use std::fmt::{format, Display, Formatter};
 use std::process::Output;
+use std::{env, io};
 
 enum Map {
     TheIsland,
@@ -83,12 +83,15 @@ impl Server {
         let stdout = match self.exec(ServerAction::IsActive) {
             Ok(out) => out.stdout,
             Err(err) => {
-                return Err(format!("Der Status des Servers konnte nicht überprüft werden: {}", err))
+                return Err(format!(
+                    "Der Status des Servers konnte nicht überprüft werden: {}",
+                    err
+                ))
             }
         };
         let stdout = String::from_utf8_lossy(&stdout).to_string();
 
-        if stdout.contains("active") {
+        if stdout.contains("active") || stdout.contains("activating") {
             Ok(true)
         } else {
             Ok(false)
@@ -100,7 +103,10 @@ impl Server {
         }
         match self.exec(ServerAction::Stop) {
             Ok(_) => Ok(()),
-            Err(err) => Err(format!("Der {} Server konnte nicht gestoppt werden: {}", self.map_name, err)),
+            Err(err) => Err(format!(
+                "Der {} Server konnte nicht gestoppt werden: {}",
+                self.map_name, err
+            )),
         }
     }
     fn start(&self) -> Result<(), String> {
@@ -109,7 +115,10 @@ impl Server {
         }
         match self.exec(ServerAction::Start) {
             Ok(_) => Ok(()),
-            Err(err) => Err(format!("Der {} Server konnte nicht gestartet werden: {}", self.map_name, err)),
+            Err(err) => Err(format!(
+                "Der {} Server konnte nicht gestartet werden: {}",
+                self.map_name, err
+            )),
         }
     }
 
