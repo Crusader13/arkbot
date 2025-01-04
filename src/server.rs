@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 use std::io;
 use std::process::Output;
 
-enum Map {
+pub enum Map {
     TheIsland,
     TheCenter,
     Ragnarok,
@@ -17,7 +17,7 @@ enum Map {
     Fjordur,
 }
 
-enum ServerAction {
+pub enum ServerAction {
     Start,
     Restart,
     IsActive,
@@ -54,12 +54,12 @@ impl Display for Map {
     }
 }
 
-struct Server {
+pub struct Server {
     map_name: Map,
 }
 
 impl Server {
-    fn from(map_name: Map) -> Option<Server> {
+    pub fn from(map_name: Map) -> Option<Server> {
         // Überprüfen ob es eine Unit File fur map_name gibt
         let services = std::process::Command::new("systemctl")
             .arg("--user")
@@ -76,7 +76,7 @@ impl Server {
             None
         }
     }
-    fn is_active(&self) -> Result<bool, String> {
+    pub fn is_active(&self) -> Result<bool, String> {
         let stdout = match self.exec(ServerAction::IsActive) {
             Ok(out) => out.stdout,
             Err(err) => {
@@ -94,7 +94,7 @@ impl Server {
             Ok(false)
         }
     }
-    fn stop(&self) -> Result<(), String> {
+    pub fn stop(&self) -> Result<(), String> {
         if !self.is_active()? {
             return Err("Der Server ist schon offline.".to_string());
         }
@@ -106,7 +106,7 @@ impl Server {
             )),
         }
     }
-    fn start(&self) -> Result<(), String> {
+    pub fn start(&self) -> Result<(), String> {
         if self.is_active()? {
             return Err(format!("Der {} Server läuft schon!", self.map_name));
         }

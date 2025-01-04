@@ -1,10 +1,10 @@
+use poise::serenity_prelude as serenity;
 use serenity::{
+    prelude::*,
     async_trait,
     client::Client,
     model::{channel::Message, gateway::Ready},
-    prelude::*,
 };
-use std::fmt::Display;
 use std::env;
 
 mod server;
