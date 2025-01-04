@@ -8,32 +8,34 @@ use std::env;
 use std::fmt::{Display, Formatter};
 
 enum Map {
-    Island,
-    Center,
+    TheIsland,
+    TheCenter,
     Ragnarok,
     CrystalIsles,
     Valguero,
     Aberration,
     Extinction,
-    SE,
-    Gen1,
-    Gen2,
+    ScorchedEarth,
+    Genesis1,
+    Genesis2,
     LostIsland,
+    Fjordur,
 }
 impl Display for Map {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Map::Island => write!(f, "Island"),
-            Map::Center => write!(f, "Center"),
+            Map::TheIsland => write!(f, "Island"),
+            Map::TheCenter => write!(f, "Center"),
             Map::Ragnarok => write!(f, "Ragnarok"),
             Map::CrystalIsles => write!(f, "CrystalIsles"),
             Map::Valguero => write!(f, "Valguero"),
             Map::Aberration => write!(f, "Aberration"),
             Map::Extinction => write!(f, "Extinction"),
-            Map::SE => write!(f, "SE"),
-            Map::Gen1 => write!(f, "Gen1"),
-            Map::Gen2 => write!(f, "Gen2"),
+            Map::ScorchedEarth => write!(f, "SE"),
+            Map::Genesis1 => write!(f, "Gen1"),
+            Map::Genesis2 => write!(f, "Gen2"),
             Map::LostIsland => write!(f, "LostIsland"),
+            Map::Fjordur => write!(f, "Fjordur"),
         }
     }
 }
