@@ -4,8 +4,9 @@ use serenity::{
     model::{channel::Message, gateway::Ready},
     prelude::*,
 };
-use std::env;
-use std::fmt::{Display, Formatter};
+use std::{env, io};
+use std::fmt::{format, Display, Formatter};
+use std::process::Output;
 
 enum Map {
     TheIsland,
@@ -20,6 +21,24 @@ enum Map {
     Genesis2,
     LostIsland,
     Fjordur,
+}
+
+enum ServerAction {
+    Start,
+    Restart,
+    IsActive,
+    Stop,
+}
+
+impl Display for ServerAction {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            ServerAction::Start => write!(f, "start"),
+            ServerAction::Restart => write!(f, "restart"),
+            ServerAction::IsActive => write!(f, "is-active"),
+            ServerAction::Stop => write!(f, "stop"),
+        }
+    }
 }
 impl Display for Map {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
@@ -60,38 +79,47 @@ impl Server {
             None
         }
     }
-    fn is_active(&self) -> bool {
-        let command = std::process::Command::new("systemctl")
-            .arg("--user")
-            .arg("is-active")
-            .arg(format!("ark{}", &self.map_name))
-            .output()
-            .unwrap()
-            .stdout;
-        let output = String::from_utf8_lossy(&command).to_string();
+    fn is_active(&self) -> Result<bool, String> {
+        let stdout = match self.exec(ServerAction::IsActive) {
+            Ok(out) => out.stdout,
+            Err(err) => {
+                return Err(format!("Der Status des Servers konnte nicht überprüft werden: {}", err))
+            }
+        };
+        let stdout = String::from_utf8_lossy(&stdout).to_string();
 
-        if output.contains("active") {
-            true
+        if stdout.contains("active") {
+            Ok(true)
         } else {
-            false
+            Ok(false)
         }
     }
     fn stop(&self) -> Result<(), String> {
-        if !self.is_active() {
-            return Err("Der Server läuft nicht!".to_string());
+        if !self.is_active()? {
+            return Err("Der Server ist schon offline.".to_string());
         }
-        match std::process::Command::new("systemctl")
-            .arg("--user")
-            .arg("stop")
-            .arg(format!("ark{}", &self.map_name))
-            .output()
-        {
+        match self.exec(ServerAction::Stop) {
             Ok(_) => Ok(()),
-            Err(err) => Err(format!(
-                "Der Server konnte nicht gestoppt werden: {}",
-                err.to_string()
-            )),
+            Err(err) => Err(format!("Der {} Server konnte nicht gestoppt werden: {}", self.map_name, err)),
         }
+    }
+    fn start(&self) -> Result<(), String> {
+        if self.is_active()? {
+            return Err(format!("Der {} Server läuft schon!", self.map_name));
+        }
+        match self.exec(ServerAction::Start) {
+            Ok(_) => Ok(()),
+            Err(err) => Err(format!("Der {} Server konnte nicht gestartet werden: {}", self.map_name, err)),
+        }
+    }
+
+    fn exec(&self, action: ServerAction) -> io::Result<Output> {
+        let result = std::process::Command::new("systemctl")
+            .arg("--user")
+            .arg(action.to_string())
+            .arg(format!("ark{}", &self.map_name))
+            .output();
+        result
     }
 }
 
@@ -116,9 +144,8 @@ async fn main() {
     let token =
         env::var("DISCORD_TOKEN").expect("Die DISCORD_TOKEN Umgebungsvariable gibt es nicht");
 
-    let intents = GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::GUILDS
-        | GatewayIntents::MESSAGE_CONTENT;
+    let intents =
+        GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS | GatewayIntents::MESSAGE_CONTENT;
 
     let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
