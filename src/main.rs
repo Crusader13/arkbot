@@ -22,7 +22,7 @@ enum Map {
     Fjordur,
 }
 impl Display for Map {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Map::TheIsland => write!(f, "Island"),
             Map::TheCenter => write!(f, "Center"),
@@ -44,6 +44,7 @@ struct Server {
 }
 impl Server {
     fn from(map_name: Map) -> Option<Server> {
+        // Überprüfen ob es eine Unit File fur map_name gibt
         let services = std::process::Command::new("systemctl")
             .arg("--user")
             .arg("list-unit-files")
