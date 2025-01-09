@@ -1,7 +1,9 @@
 use std::fmt::{Display, Formatter};
 use std::io;
 use std::process::Output;
+use strum::EnumIter;
 
+#[derive(EnumIter)]
 pub enum Map {
     TheIsland,
     TheCenter,
@@ -39,7 +41,7 @@ impl Display for Map {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Map::TheIsland => write!(f, "Island"),
-            Map::TheCenter => write!(f, "Center"),
+            Map::TheCenter => write!(f, "TheCenter"),
             Map::Ragnarok => write!(f, "Ragnarok"),
             Map::CrystalIsles => write!(f, "CrystalIsles"),
             Map::Valguero => write!(f, "Valguero"),
@@ -55,12 +57,12 @@ impl Display for Map {
 }
 
 pub struct Server {
-    map_name: Map,
+    pub(crate) map_name: Map,
 }
 
 impl Server {
     pub fn from(map_name: Map) -> Option<Server> {
-        // Überprüfen ob es eine Unit File fur map_name gibt
+        // Überprüfen ob es eine Unit File für map_name gibt
         let services = std::process::Command::new("systemctl")
             .arg("--user")
             .arg("list-unit-files")
