@@ -2,7 +2,6 @@ use crate::server::{Map, Server};
 use poise::serenity_prelude as serenity;
 use serenity::prelude::*;
 use std::env;
-use std::fmt::Display;
 use std::sync::Mutex;
 use strum::IntoEnumIterator;
 
@@ -18,18 +17,29 @@ async fn start(
     ctx: Context<'_>,
     #[description = "Welcher Server soll gestartet werden?"] server_input: String,
 ) -> Result<(), Error> {
-    let available_servers = SERVERS.lock().unwrap();
+    let available_servers = SERVERS.lock().unwrap().clone();
     let mut server_to_start: Option<Server> = None;
     
     for server in available_servers.iter() {
         let server_name: String = server.map_name.to_string();
         
         if server_name.contains(server_input.as_str()) {
-            server_to_start = Some(*server.clone());
+            server_to_start = Some(*server);
         }
     }
-    
-    todo!()
+    if server_to_start.is_none() {
+        ctx.say(format!("Dieser Server existiert nicht: {}", server_input)).await?;
+        Ok(())
+    } else {
+        ctx.say(format!("Server: {} wird gestartet", server_input)).await?;
+        match server_to_start.unwrap().start() {
+            Ok(_) => Ok(()),
+            Err(err) => {
+                ctx.say(format!("Fehler: {}", err.to_string())).await?;
+                Ok(())
+            }
+        }
+    }
 }
 
 #[tokio::main]

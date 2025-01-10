@@ -3,7 +3,7 @@ use std::io;
 use std::process::Output;
 use strum::EnumIter;
 
-#[derive(EnumIter)]
+#[derive(EnumIter, Clone, Copy)]
 pub enum Map {
     TheIsland,
     TheCenter,
@@ -56,6 +56,7 @@ impl Display for Map {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Server {
     pub(crate) map_name: Map,
 }
